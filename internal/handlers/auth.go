@@ -42,3 +42,14 @@ func Signup(c echo.Context) error{
 	}
 	return c.JSON(http.StatusOK, "User created succesfully" )
 }
+
+func Login(c echo.Context) error{
+	db, err := database.Connect()
+	if err != nil{
+		log.Println("Failed to connect in Database")
+		return c.JSON(http.StatusInternalServerError, "Failed to connect in Database")
+	}
+	defer db.Close()
+
+	return nil
+}

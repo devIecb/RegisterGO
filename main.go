@@ -19,6 +19,8 @@ func main() {
 	e.GET("/getallusers", handlers.GetAllUsers)
 	e.GET("/getuserbyid/:id", handlers.GetUserByID)
 	e.POST("/signup", handlers.Signup)
+	e.PUT("/updateuser/:id",  handlers.UpdateUser)
+	e.DELETE("/deleteuser/:id", handlers.DeleteUser)
 	
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 

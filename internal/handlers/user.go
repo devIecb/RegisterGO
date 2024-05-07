@@ -54,6 +54,8 @@ func GetAllUsers(c echo.Context) error{
 //@Description Get a user by your ID in Database
 //@Tags Users
 //@Produce json
+//@Param id path int true "User ID"
+//@Security Bearer
 //@Success 200 {array} models.GetUser
 //Failure 500 {object} string "Failed to connect to database"
 //Failure 500 {object} string "Failed to fetch users from Database"
@@ -63,7 +65,7 @@ func GetUserByID(c echo.Context) error{
 	db, err := database.Connect()
 	if err != nil{
 		log.Println("Failed to connect in Database")
-		return c.JSON(http.StatusOK, "Failed to connect in Database")
+		return c.JSON(http.StatusInternalServerError, "Failed to connect in Database")
 	}
 	defer db.Close()
 
@@ -83,7 +85,81 @@ func GetUserByID(c echo.Context) error{
 			return c.JSON(http.StatusNotFound, "User not found")
 		}
 		log.Println("Failed to fetch user from Database")
-		return c.JSON(http.StatusOK, "Failed to fetch user from Database")
+		return c.JSON(http.StatusInternalServerError, "Failed to fetch user from Database")
 	}
 	return c.JSON(http.StatusOK, user)
+}
+
+//UpdateUser Update user by id from Databse
+//@Description Update a user by your ID in Database
+//@Tags Users
+//@Accept json
+//@Produce json
+//@Param id path int true "User ID to be updated"
+//@Security Bearer
+//@Success 200 {array} models.GetUser
+//Failure 500 {object} string "Failed to connect to database"
+//Failure 500 {object} string "Failed to decode Request Body"
+//Failure 500 {object} string "Failed to update user"
+//@Router /updateuser/{id} [put]
+func UpdateUser(c echo.Context) error{
+	db, err := database.Connect()
+	if err != nil{
+		log.Println("Failed to connect in Database")
+		return c.JSON(http.StatusInternalServerError, "Failed to connect in Database")
+	}
+	defer db.Close()
+
+	userID, err := strconv.Atoi(c.Param("id"))
+	if err != nil{
+		return c.JSON(http.StatusBadRequest, "Invalid user ID")
+	}
+
+	var user models.GetUser
+	err = c.Bind(&user)
+	if err != nil{
+		return c.JSON(http.StatusInternalServerError, "Failed to decode request body")
+	}
+
+	_, err = db.Exec("UPDATE users SET nome = ?, email= ? WHERE id = ?", user.Nome, user.Email, userID)
+	if err != nil{
+		return c.JSON(http.StatusInternalServerError, "Failed to update user")
+	}
+
+	updatedUser := models.GetUser{}
+    err = db.QueryRow("SELECT id, nome, email FROM users WHERE id = ?", userID).Scan(&updatedUser.ID, &updatedUser.Nome, &updatedUser.Email)
+    if err != nil {
+        return c.JSON(http.StatusInternalServerError, "Failed to fetch updated user data")
+    }
+	return c.JSON(http.StatusOK, updatedUser)
+}
+
+//DeleteUser Delete user by ID from Databse
+//@Description Delete a user by your ID in Database
+//@Tags Users
+//@Produce json
+//@Param id path int true "User ID to be deleted"
+//@Security Bearer
+//@Success 200 {object} string "User deleted successfully"
+//Failure 500 {object} string "Failed to connect to database"
+//Failure 500 {object} string "Invalid user ID"
+//Failure 500 {object} string "Failed to delete user"
+//@Router /deleteuser/{id} [delete]
+func DeleteUser(c echo.Context) error{
+	db, err := database.Connect()
+	if err != nil{
+		log.Println("Failed to connect in Database")
+		return c.JSON(http.StatusInternalServerError, "Failed to connect in Database")
+	}
+
+	userID, err := strconv.Atoi(c.Param("id"))
+	if err != nil{
+		return c.JSON(http.StatusBadRequest, "Invalid user ID")
+	}
+
+	_, err = db.Exec("DELETE FROM users WHERE id = ?", userID)
+	if err != nil{
+		return c.JSON(http.StatusInternalServerError, "Failed to delete user from databse")
+	}
+	return c.JSON(http.StatusOK, "User deleted succefully")
 }
