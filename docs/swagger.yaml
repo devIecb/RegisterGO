@@ -1,0 +1,84 @@
+basePath: /
+definitions:
+  models.GetUser:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      nome:
+        type: string
+    type: object
+  models.User:
+    properties:
+      dt_cadastro:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      nome:
+        type: string
+      senha:
+        type: string
+    type: object
+host: localhost:8001
+info:
+  contact: {}
+  description: A Simple Register Web Service
+  title: Web Register
+paths:
+  /getallusers:
+    get:
+      description: Get all user inserted in Database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.GetUser'
+            type: array
+      tags:
+      - Users
+  /getuserbyid/{id}:
+    get:
+      description: Get a user by your ID in Database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.GetUser'
+            type: array
+      tags:
+      - Users
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user using the provided informations
+      parameters:
+      - description: User informations for registration
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully create user
+          schema:
+            $ref: '#/definitions/models.User'
+        "500":
+          description: Failed to insert User in Database
+          schema:
+            type: string
+      tags:
+      - Users
+swagger: "2.0"
