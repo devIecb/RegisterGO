@@ -19,9 +19,10 @@ func main() {
 	e.GET("/getallusers", handlers.GetAllUsers)
 	e.GET("/getuserbyid/:id", handlers.GetUserByID)
 	e.POST("/signup", handlers.Signup)
+	e.POST("/login", handlers.Login)
 	e.PUT("/updateuser/:id",  handlers.UpdateUser)
 	e.DELETE("/deleteuser/:id", handlers.DeleteUser)
-	
+
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	e.Logger.Fatal(e.Start(":8001"))

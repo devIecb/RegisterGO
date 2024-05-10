@@ -13,7 +13,6 @@ type User struct {
 type UserLogin struct{
 	Email 	string 	`json:"email"`
 	Senha 	string 	`json:"senha"`
-	Remember bool 	`json:"remember"`
 }
 
 type GetUser struct {

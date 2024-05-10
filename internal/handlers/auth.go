@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"register/internal/database"
 	"register/internal/models"
+	"register/tools"
 
 	"github.com/labstack/echo/v4"
 )
@@ -35,7 +37,12 @@ func Signup(c echo.Context) error{
 		return c.JSON(http.StatusInternalServerError, "Failed to decode request body")
 	}
 
-	_, err = db.Exec("INSERT INTO users (nome, email, senha) VALUES (?, ?, ?)", user.Nome, user.Email, user.Senha)
+	Pass, err := tools.GenerateHash(user.Senha)
+	if err != nil{
+		return c.JSON(http.StatusInternalServerError, "Error to generate hash password")
+	}
+
+	_, err = db.Exec("INSERT INTO users (nome, email, senha) VALUES (?, ?, ?)", user.Nome, user.Email, Pass)
 	if err != nil{
 		log.Println("Failed to insert User in database")
 		return c.JSON(http.StatusInternalServerError, "Failed to insert User in Database")
@@ -51,5 +58,25 @@ func Login(c echo.Context) error{
 	}
 	defer db.Close()
 
-	return nil
+	var user models.UserLogin
+	err = c.Bind(&user)
+	if err != nil{
+		return c.JSON(http.StatusInternalServerError, "Error to decode request body")
+	}
+
+	var users models.User 
+	err = db.QueryRow("SELECT email, senha FROM users WHERE email = ?", user.Email).Scan(&users.Email, &users.Senha)
+	if err != nil{
+		if err == sql.ErrNoRows{
+			return c.JSON(http.StatusUnauthorized, map[string]string{"message": "Email ou senha incorretass"})
+		}
+		return c.JSON(http.StatusInternalServerError, "Error to select users from Database")
+	}
+	
+	comp := tools.CompareHashPassword(users.Senha, user.Senha)
+	if !comp{
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "Email ou senha incorreta"})
+	}
+	return c.JSON(http.StatusOK, "User logged successfully")
 }
+		

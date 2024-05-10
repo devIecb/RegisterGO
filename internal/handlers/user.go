@@ -77,7 +77,7 @@ func GetUserByID(c echo.Context) error{
 	row := db.QueryRow("SELECT id, nome, email FROM users WHERE id = ?", userID)
 
 	var user models.GetUser
-
+	
 	err = row.Scan(&user.ID, &user.Nome, &user.Email)
 	if err != nil{
 		if err == sql.ErrNoRows {
